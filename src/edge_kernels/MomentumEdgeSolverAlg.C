@@ -69,14 +69,14 @@ MomentumEdgeSolverAlg::execute()
   const std::string dofName = "velocity";
   const DblType includeDivU = realm_.get_divU();
   const DblType alpha = realm_.get_alpha_factor(dofName);
-  const DblType alphaUpw = realm_.get_alpha_upw_factor(dofName);
+  DblType alphaUpw = realm_.get_alpha_upw_factor(dofName);
   const DblType hoUpwind = realm_.get_upw_factor(dofName);
   const DblType relaxFacU =
     realm_.solutionOptions_->get_relaxation_factor(dofName);
   const bool useLimiter = realm_.primitive_uses_limiter(dofName);
 
   const DblType om_alpha = 1.0 - alpha;
-  const DblType om_alphaUpw = 1.0 - alphaUpw;
+  DblType om_alphaUpw = 1.0 - alphaUpw;
 
   const DblType has_vof = (double)realm_.solutionOptions_->realm_has_vof_;
 
@@ -161,12 +161,24 @@ MomentumEdgeSolverAlg::execute()
         }
       }
 
+      DblType density_upwinding_factor = 1.0;
+      if (has_vof > 0.5) {
+
+        const DblType min_density = densityL < densityR ? densityL : densityR;
+        const DblType density_differential = stk::math::abs(densityL - densityR) / min_density;
+        density_upwinding_factor = 1.0 - stk::math:erf(2.0 * density_differential);
+
+        alphaUpw = density_upwinding_factor * alphaUpw + (1.0 - density_upwinding_factor);
+        om_alphaUpw = 1.0 - alphaUpw;
+
+      }
+
       // Upwind extrapolation with limiter terms
       NALU_ALIGNED DblType uIpL[NDimMax_];
       NALU_ALIGNED DblType uIpR[NDimMax_];
       for (int d = 0; d < ndim; ++d) {
-        uIpL[d] = vel.get(nodeL, d) + duL[d] * hoUpwind * limitL[d];
-        uIpR[d] = vel.get(nodeR, d) - duR[d] * hoUpwind * limitR[d];
+        uIpL[d] = vel.get(nodeL, d) + duL[d] * hoUpwind * limitL[d] * density_upwinding_factor;
+        uIpR[d] = vel.get(nodeR, d) - duR[d] * hoUpwind * limitR[d] * density_upwinding_factor;
       }
 
       // TODO(psakiev) extract this a funciton into EdgeKernelUtils.h
