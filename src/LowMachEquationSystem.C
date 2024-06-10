@@ -120,7 +120,6 @@
 #include "ngp_algorithms/WallFuncGeometryAlg.h"
 #include "ngp_algorithms/DynamicPressureOpenAlg.h"
 #include "ngp_algorithms/MomentumABLWallFuncMaskUtil.h"
-#include "ngp_algorithms/BuoyancySourceAlg.h"
 #include "ngp_utils/NgpLoopUtils.h"
 #include "ngp_utils/NgpFieldBLAS.h"
 #include "ngp_utils/NgpFieldUtils.h"
@@ -1051,7 +1050,6 @@ MomentumEquationSystem::MomentumEquationSystem(EquationSystems& eqSystems)
     tvisc_(NULL),
     evisc_(NULL),
     nodalGradAlgDriver_(realm_, "velocity", "dudx"),
-    nodalBuoyancyAlgDriver_(realm_, "density", "buoyancy_source", false),
     wallFuncAlgDriver_(realm_),
     dynPressAlgDriver_(realm_),
     cflReAlgDriver_(realm_),
@@ -1189,12 +1187,6 @@ MomentumEquationSystem::register_nodal_fields(
     &(meta_data.declare_field<double>(stk::topology::NODE_RANK, "viscosity"));
   stk::mesh::put_field_on_mesh(*visc_, selector, nullptr);
 
-  if (realm_.solutionOptions_->use_balanced_buoyancy_force_) {
-    buoyancy_source_ = &(meta_data.declare_field<double>(
-      stk::topology::NODE_RANK, "buoyancy_source"));
-    stk::mesh::put_field_on_mesh(*buoyancy_source_, selector, nDim, nullptr);
-  }
-
   if (realm_.is_turbulent()) {
     tvisc_ = &(meta_data.declare_field<double>(
       stk::topology::NODE_RANK, "turbulent_viscosity"));
@@ -1320,10 +1312,6 @@ MomentumEquationSystem::register_interior_algorithm(stk::mesh::Part* part)
         algType, part, "momentum_nodal_grad", &velocityNp1, &dudxNone,
         edgeNodalGradient_);
   }
-
-  if (realm_.solutionOptions_->use_balanced_buoyancy_force_)
-    nodalBuoyancyAlgDriver_.register_edge_algorithm<BuoyancySourceAlg>(
-      algType, part, "momentum_buoyancy_source", buoyancy_source_);
 
   const auto theTurbModel = realm_.solutionOptions_->turbulenceModel_;
 
@@ -2526,9 +2514,6 @@ MomentumEquationSystem::compute_projected_nodal_gradient()
   if (!managePNG_) {
     const double timeA = -NaluEnv::self().nalu_time();
     nodalGradAlgDriver_.execute();
-    if (realm_.solutionOptions_->use_balanced_buoyancy_force_) {
-      nodalBuoyancyAlgDriver_.execute();
-    }
     timerMisc_ += (NaluEnv::self().nalu_time() + timeA);
   } else {
     // this option is more complex... Rather than solving a nDim*nDim system, we
