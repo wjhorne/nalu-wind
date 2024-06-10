@@ -161,9 +161,9 @@ MomentumEdgeSolverAlg::execute()
       }
 
       // Upwinding switch for multiphase cases.
-      // Factors determined by ensuring full upwinding 
+      // Factors determined by ensuring full upwinding
       // at interfaces with interface
-      // widths that are ~2 cells thick 
+      // widths that are ~2 cells thick
       DblType density_upwinding_factor = 1.0;
       DblType alphaUpw_w_vof = alphaUpw;
       DblType om_alphaUpw_w_vof = 1.0 - alphaUpw_w_vof;

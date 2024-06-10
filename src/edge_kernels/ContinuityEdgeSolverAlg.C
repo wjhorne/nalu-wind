@@ -133,11 +133,7 @@ ContinuityEdgeSolverAlg::execute()
         const DblType ujIp =
           0.5 * (velocity.get(nodeR, d) + velocity.get(nodeL, d));
         const DblType GjIp =
-          0.5 *
-          (Gpdx.get(nodeR, d) /
-             (udiagR) +
-           Gpdx.get(nodeL, d) /
-             (udiagL));
+          0.5 * (Gpdx.get(nodeR, d) / (udiagR) + Gpdx.get(nodeL, d) / (udiagL));
         tmdot +=
           (interpTogether * rhoUjIp + om_interpTogether * rhoIp * ujIp + GjIp) *
             av[d] -

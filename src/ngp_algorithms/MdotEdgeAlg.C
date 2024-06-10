@@ -37,7 +37,8 @@ MdotEdgeAlg::MdotEdgeAlg(Realm& realm, stk::mesh::Part* part)
     Udiag_(get_field_ordinal(realm.meta_data(), "momentum_diag")),
     massFlowRate_(get_field_ordinal(
       realm.meta_data(), "mass_flow_rate", stk::topology::EDGE_RANK))
-{}
+{
+}
 
 void
 MdotEdgeAlg::execute()
@@ -64,7 +65,7 @@ MdotEdgeAlg::execute()
   auto pressure = fieldMgr.get_field<double>(pressure_);
   auto udiag = fieldMgr.get_field<double>(Udiag_);
   auto edgeAreaVec = fieldMgr.get_field<double>(edgeAreaVec_);
-  
+
   stk::mesh::NgpField<double> edgeFaceVelMag;
 
   bool needs_gcl = false;
@@ -138,11 +139,7 @@ MdotEdgeAlg::execute()
         const DblType ujIp =
           0.5 * (velocity.get(nodeR, d) + velocity.get(nodeL, d));
         const DblType GjIp =
-          0.5 *
-          (Gpdx.get(nodeR, d) /
-             udiagR +
-           Gpdx.get(nodeL, d) /
-             udiagL);
+          0.5 * (Gpdx.get(nodeR, d) / udiagR + Gpdx.get(nodeL, d) / udiagL);
         tmdot +=
           (interpTogether * rhoUjIp + om_interpTogether * rhoIp * ujIp + GjIp) *
             av[d] -

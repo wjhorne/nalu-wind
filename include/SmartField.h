@@ -68,11 +68,11 @@ class SmartField<FieldType, tags::LEGACY, ACCESS>
 {
 
 private:
-  static constexpr bool is_read_{
-    std::is_same_v<ACCESS, READ> || std::is_same_v<ACCESS, READ_WRITE>};
+  static constexpr bool is_read_{std::is_same_v<ACCESS, READ> ||
+                                 std::is_same_v<ACCESS, READ_WRITE>};
 
-  static constexpr bool is_write_{
-    std::is_same_v<ACCESS, WRITE_ALL> || std::is_same_v<ACCESS, READ_WRITE>};
+  static constexpr bool is_write_{std::is_same_v<ACCESS, WRITE_ALL> ||
+                                  std::is_same_v<ACCESS, READ_WRITE>};
 
   FieldType& stkField_;
 
@@ -160,11 +160,11 @@ template <typename FieldType, typename ACCESS>
 class SmartField<FieldType, tags::DEVICE, ACCESS>
 {
 private:
-  static constexpr bool is_read_{
-    std::is_same_v<ACCESS, READ> || std::is_same_v<ACCESS, READ_WRITE>};
+  static constexpr bool is_read_{std::is_same_v<ACCESS, READ> ||
+                                 std::is_same_v<ACCESS, READ_WRITE>};
 
-  static constexpr bool is_write_{
-    std::is_same_v<ACCESS, WRITE_ALL> || std::is_same_v<ACCESS, READ_WRITE>};
+  static constexpr bool is_write_{std::is_same_v<ACCESS, WRITE_ALL> ||
+                                  std::is_same_v<ACCESS, READ_WRITE>};
 
   FieldType stkField_;
   const bool is_copy_constructed_{false};
@@ -179,10 +179,9 @@ public:
   SmartField(const SmartField& src)
     : stkField_(src.stkField_), is_copy_constructed_(true)
   {
-    KOKKOS_IF_ON_HOST(
-      if (is_read_) { stkField_.sync_to_device(); } else {
-        stkField_.clear_sync_state();
-      });
+    KOKKOS_IF_ON_HOST(if (is_read_) { stkField_.sync_to_device(); } else {
+      stkField_.clear_sync_state();
+    });
   }
 
   KOKKOS_FUNCTION
@@ -290,11 +289,11 @@ template <typename FieldType, typename ACCESS>
 class SmartField<FieldType, tags::HOST, ACCESS>
 {
 private:
-  static constexpr bool is_read_{
-    std::is_same_v<ACCESS, READ> || std::is_same_v<ACCESS, READ_WRITE>};
+  static constexpr bool is_read_{std::is_same_v<ACCESS, READ> ||
+                                 std::is_same_v<ACCESS, READ_WRITE>};
 
-  static constexpr bool is_write_{
-    std::is_same_v<ACCESS, WRITE_ALL> || std::is_same_v<ACCESS, READ_WRITE>};
+  static constexpr bool is_write_{std::is_same_v<ACCESS, WRITE_ALL> ||
+                                  std::is_same_v<ACCESS, READ_WRITE>};
 
   FieldType stkField_;
   const bool is_copy_constructed_{false};
